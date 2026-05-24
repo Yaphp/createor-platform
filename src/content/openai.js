@@ -2,14 +2,33 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function isVisible(element) {
+  if (!element) return false;
+  const rect = element.getBoundingClientRect();
+  const style = window.getComputedStyle(element);
+  return rect.width > 0 && rect.height > 0 && style.visibility !== "hidden" && style.display !== "none";
+}
+
 function getComposer() {
-  return (
-    document.querySelector("#prompt-textarea") ||
-    document.querySelector("div[contenteditable='true']#prompt-textarea") ||
-    document.querySelector("div[contenteditable='true'][data-placeholder]") ||
-    document.querySelector("div[contenteditable='true']") ||
-    document.querySelector("textarea")
-  );
+  const selectors = [
+    "#prompt-textarea",
+    "textarea[name='prompt-textarea']",
+    "form textarea",
+    "[data-testid='composer'] [contenteditable='true']",
+    "form [contenteditable='true']",
+    "main [contenteditable='true'][data-placeholder]",
+    "main [contenteditable='true']",
+    "div[contenteditable='true'][data-placeholder]",
+    "div[contenteditable='true']",
+    "textarea"
+  ];
+
+  for (const selector of selectors) {
+    const element = Array.from(document.querySelectorAll(selector)).find(isVisible);
+    if (element) return element;
+  }
+
+  return null;
 }
 
 function setTextareaValue(element, text) {
@@ -27,6 +46,16 @@ function selectElementContents(element) {
   selection.addRange(range);
 }
 
+function normalizeComposerText(text) {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function composerIncludesText(element, text) {
+  const actual = element.tagName === "TEXTAREA" ? element.value : element.innerText || element.textContent || "";
+  const expected = text.slice(0, 80);
+  return normalizeComposerText(actual).includes(normalizeComposerText(expected));
+}
+
 async function setComposerText(element, text) {
   element.focus();
   if (element.tagName === "TEXTAREA") {
@@ -39,7 +68,7 @@ async function setComposerText(element, text) {
   await sleep(50);
   const inserted = document.execCommand("insertText", false, text);
 
-  if (!inserted || !element.innerText.includes(text.slice(0, 40))) {
+  if (!inserted || !composerIncludesText(element, text)) {
     element.innerHTML = "";
     const paragraph = document.createElement("p");
     paragraph.textContent = text;
@@ -54,7 +83,10 @@ function getSendButton() {
   const buttons = Array.from(document.querySelectorAll("button"));
   return (
     document.querySelector('button[data-testid="send-button"]') ||
+    document.querySelector('button[data-testid="composer-submit-button"]') ||
+    document.querySelector('form button[type="submit"]') ||
     document.querySelector('button[aria-label*="Send" i]') ||
+    document.querySelector('button[aria-label*="Submit" i]') ||
     buttons.find((button) => /send|submit/i.test(button.getAttribute("aria-label") || ""))
   );
 }
@@ -83,9 +115,11 @@ function submitComposer(composer, button) {
     return true;
   }
 
-  composer.dispatchEvent(new KeyboardEvent("keydown", {
+    composer.dispatchEvent(new KeyboardEvent("keydown", {
     key: "Enter",
     code: "Enter",
+    which: 13,
+    keyCode: 13,
     bubbles: true,
     cancelable: true
   }));
@@ -136,6 +170,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       }
 
       await setComposerText(composer, message.prompt);
+      if (!composerIncludesText(composer, message.prompt)) {
+        sendResponse({ ok: false, error: "Could not insert prompt into ChatGPT composer." });
+        return;
+      }
+
       const button = await waitForEnabledSendButton();
       if (!button && !composer.closest("form")) {
         sendResponse({ ok: false, error: "Could not find enabled send button." });

@@ -4,6 +4,7 @@ param(
   [string]$CaptionFile = "",
   [string]$ArchiveRoot = (Get-Location).Path,
   [string]$RunName = (Get-Date -Format "yyyy-MM-dd"),
+  [switch]$KeepSourceFiles,
   [int]$SecondsPerImage = 3,
   [int]$FontSize = 58,
   [int]$CaptionMarginTop = 260,
@@ -30,7 +31,8 @@ if ($images.Count -eq 0) {
   throw "No image files found in: $ImageDir"
 }
 
-$runDir = Join-Path $ArchiveRoot $RunName
+$outputRoot = Join-Path $ArchiveRoot "output"
+$runDir = Join-Path $outputRoot $RunName
 $archiveImageDir = Join-Path $runDir "images"
 $archiveCaptionDir = Join-Path $runDir "captions"
 $workDir = Join-Path $runDir "segments"
@@ -155,5 +157,20 @@ if ($LASTEXITCODE -ne 0) {
   throw "ffmpeg failed while concatenating segments."
 }
 
+if (-not $KeepSourceFiles) {
+  foreach ($image in $images) {
+    if (Test-Path -LiteralPath $image.FullName) {
+      Remove-Item -LiteralPath $image.FullName -Force
+    }
+  }
+
+  if ($CaptionFile -and (Test-Path -LiteralPath $CaptionFile)) {
+    Remove-Item -LiteralPath $CaptionFile -Force
+  }
+}
+
 Write-Host "Created $Output"
 Write-Host "Archived package in $runDir"
+if (-not $KeepSourceFiles) {
+  Write-Host "Deleted source files from download directory."
+}

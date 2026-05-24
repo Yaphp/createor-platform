@@ -23,7 +23,7 @@ Task:
 6. Characters should look European/American unless the source idea clearly requires otherwise.
 7. Image prompts must avoid visible text, subtitles, usernames, watermarks, logos, and UI elements.
 8. Create a TikTok caption and 8-12 hashtags.
-9. Include a soft call-to-action that fits the story, such as inviting viewers to write the message they never sent with unspokenvideo.com. Do not make it sound like an ad.
+9. Write one separate soft call-to-action in cta_line. It must include the exact domain unspokenvideo.com once. Do not make it sound like an ad.
 
 Voiceover rules:
 - Write 5 short lines, one line per visual panel.
@@ -31,7 +31,9 @@ Voiceover rules:
 - Use direct second person when it increases emotional pull.
 - Avoid generic therapy language, motivational quotes, and melodrama.
 - Strong pattern: concrete memory -> hidden hurt -> lingering hope -> unsent confession -> quiet invitation.
-- The final line may gently suggest the product feeling, but must stay poetic, not salesy.
+- Do not mention unspokenvideo.com, the app name, or any call-to-action in rewritten_script or voiceover_lines.
+- The final voiceover line should close the story emotionally, not repeat the CTA.
+- cta_line should be a separate quiet invitation, 6-14 words, and must mention unspokenvideo.com exactly once.
 
 Output JSON only with this shape:
 {

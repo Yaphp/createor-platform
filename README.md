@@ -30,8 +30,9 @@ Browser extension MVP for connecting:
    powershell -ExecutionPolicy Bypass -File .\native\build_video_ffmpeg.ps1
    ```
 
-   The output package is written under a date folder in the current project directory, for example `2026-05-19\`.
-   It contains `images\`, `captions\`, `segments\`, and `unspokenvideo.mp4`.
+   The final video and working package are written under `output\<date>\`.
+   That folder contains `images\`, `captions\`, `segments\`, and `unspokenvideo.mp4`.
+   When the build completes successfully, the original downloaded source files under the downloads `unspokenvideo` folder are deleted after the archive copy is created.
 
 10. To build from the extension side panel, install the Native Messaging host once.
     Find the unpacked extension id in `chrome://extensions`, then run:

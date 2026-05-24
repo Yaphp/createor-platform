@@ -45,21 +45,82 @@ function parseResultCaption(text) {
   }
 }
 
+function normalizeCaptionLine(line) {
+  return String(line || "")
+    .replace(/\s+/g, " ")
+    .replace(/[“”]/g, "\"")
+    .replace(/[‘’]/g, "'")
+    .trim();
+}
+
+function normalizeForComparison(line) {
+  return normalizeCaptionLine(line)
+    .toLowerCase()
+    .replace(/https?:\/\/(www\.)?/g, "")
+    .replace(/\bunspokenvideo\.com\b/g, "")
+    .replace(/[^\p{L}\p{N}]+/gu, "");
+}
+
+function isCtaLike(line) {
+  return /\bunspokenvideo(?:\.com)?\b|message you never sent|write (it|the message)|write .*message|send the message/i.test(line);
+}
+
+function sanitizeCtaLine(line) {
+  let cta = normalizeCaptionLine(line);
+  cta = cta.replace(/(?:https?:\/\/)?(?:www\.)?unspokenvideo\.com/gi, "unspokenvideo.com");
+
+  if (!cta) {
+    return "Write the message you never sent at unspokenvideo.com";
+  }
+
+  if (!/\bunspokenvideo\.com\b/i.test(cta)) {
+    cta = `${cta} at unspokenvideo.com`;
+  }
+
+  let domainSeen = false;
+  cta = cta.replace(/\bunspokenvideo\.com\b/gi, () => {
+    if (domainSeen) return "";
+    domainSeen = true;
+    return "unspokenvideo.com";
+  });
+
+  return normalizeCaptionLine(cta);
+}
+
+function uniqueCaptionLines(lines) {
+  const seen = new Set();
+  const unique = [];
+  for (const line of lines.map(normalizeCaptionLine).filter(Boolean)) {
+    const key = normalizeForComparison(line);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(line);
+  }
+  return unique;
+}
+
 function buildCaptionLines(resultText) {
   const data = parseOpenAiJson(resultText);
   const storyboard = Array.isArray(data.storyboard) ? data.storyboard.slice(0, 5) : [];
   const total = Math.max(storyboard.length, 1);
-  const lines = storyboard.map((_panel, index) => pickVoiceoverForPanel(data, index, total).trim());
-  const ctaLine = (data.cta_line || "").trim();
-  const nonEmpty = lines.filter(Boolean);
-  if (nonEmpty.length) return ctaLine ? [...lines, ctaLine] : lines;
+  const lines = uniqueCaptionLines(
+    storyboard.map((_panel, index) => pickVoiceoverForPanel(data, index, total))
+  );
+  const ctaLine = sanitizeCtaLine(data.cta_line);
+  const scriptLines = lines.filter((line) => {
+    const lineKey = normalizeForComparison(line);
+    const ctaKey = normalizeForComparison(ctaLine);
+    return lineKey !== ctaKey && !isCtaLike(line);
+  });
+  if (scriptLines.length) return [...scriptLines, ctaLine];
   if (data.rewritten_script) {
-    const scriptLines = data.rewritten_script
+    const fallbackLines = uniqueCaptionLines(data.rewritten_script
       .split(/(?<=[.!?])\s+/)
       .map((line) => line.trim())
-      .filter(Boolean)
+      .filter(Boolean))
+      .filter((line) => !isCtaLike(line))
       .slice(0, 5);
-    return ctaLine ? [...scriptLines, ctaLine] : scriptLines;
+    if (fallbackLines.length) return [...fallbackLines, ctaLine];
   }
   throw new Error("No voiceover lines found in ChatGPT result.");
 }
@@ -150,14 +211,23 @@ document.querySelector("#readReddit").addEventListener("click", async () => {
 
 document.querySelector("#sendOpenAi").addEventListener("click", async () => {
   setStatus("Sending prompt to ChatGPT...");
-  await chrome.storage.local.set({ style: styleEl.value });
-  const posts = JSON.parse(postsEl.value || "[]");
-  const prompt = `${buildOpenAiPrompt(posts)}
+  try {
+    await chrome.storage.local.set({ style: styleEl.value });
+    const posts = JSON.parse(postsEl.value || "[]");
+    if (!Array.isArray(posts) || posts.length === 0) {
+      setStatus("No Reddit candidates found. Click Read Reddit first.");
+      return;
+    }
+
+    const prompt = `${buildOpenAiPrompt(posts)}
 
 Apply this visual style to every image prompt:
 ${styleEl.value}`;
-  const response = await send({ type: "SEND_TO_OPENAI", prompt });
-  setStatus(response.ok ? "Prompt sent" : response.error || response.result?.error || "Send failed");
+    const response = await send({ type: "SEND_TO_OPENAI", prompt });
+    setStatus(response.ok ? "Prompt sent" : response.error || response.result?.error || "Send failed");
+  } catch (error) {
+    setStatus(`Send failed: ${error.message}`);
+  }
 });
 
 document.querySelector("#readOpenAi").addEventListener("click", async () => {
@@ -227,7 +297,7 @@ document.querySelector("#buildVideo").addEventListener("click", async () => {
     .split(/\r?\n/)
     .reverse()
     .find((line) => /Archived package in|Created/.test(line));
-  setStatus(outputLine || "Build complete. Check today's folder.");
+  setStatus(outputLine || "Build complete. Check the output folder.");
 });
 
 document.querySelector("#copyCaption").addEventListener("click", async () => {
