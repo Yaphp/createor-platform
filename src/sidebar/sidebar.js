@@ -117,17 +117,13 @@ Scene and emotion:
 - Emotional sentence to express visually, without drawing any text: "${panel.emotionalLine || "quiet longing and unsaid affection"}"
 - Base image prompt: ${panel.imagePrompt}
 - Continuity: ${panel.continuity}
-- The scene must feel like a real private relationship moment, not a decorative sad portrait.
-- Prioritize the emotional action in the sentence through body language, hesitation, distance, familiar objects, and ordinary places.
-- Useful visual details include a phone held but not sent, typing posture, deleted-message hesitation, late-night bedroom light, an empty chair, a doorway pause, old shared objects, kitchen-table silence, or rain at a bus stop.
 
 Hard rules:
 - European/American character design.
 - Warm hand-drawn storybook look, thick imperfect dark outlines, watercolor/marker texture, beige paper background.
 - No visible words, captions, usernames, logos, watermarks, UI, speech bubbles, or text inside the image.
 - Keep the same recurring characters across all panels.
-- Focus on making the viewer recognize their own unsent-message situation through facial expression, body language, props, lighting, and composition.
-- Do not make the image only beautiful; make it narratively specific.
+- Focus on the emotional meaning of the sentence through facial expression, body language, props, lighting, and composition.
 - Output only this one image.`;
 }
 
