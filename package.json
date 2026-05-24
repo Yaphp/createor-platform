@@ -1,0 +1,9 @@
+{
+  "name": "unspoken-video-pipeline-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check src/background.js && node --check src/sidebar/sidebar.js && node --check src/lib/prompts.js && node --check src/content/reddit.js && node --check src/content/openai.js && node --check src/content/tiktok.js"
+  }
+}

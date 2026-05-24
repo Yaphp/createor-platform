@@ -1,0 +1,9 @@
+{
+    "path":  "F:\\Projects\\Node\\createor-platform\\native\\video_host.cmd",
+    "description":  "Unspoken Video Pipeline native video builder",
+    "name":  "com.unspokenvideo.pipeline",
+    "allowed_origins":  [
+                            "chrome-extension://gpknbpocknbhmjchnljglhpgmmjehjjc/"
+                        ],
+    "type":  "stdio"
+}

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Unspoken Pipeline</title>
+    <link rel="stylesheet" href="./sidebar.css">
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <h1>Unspoken Pipeline</h1>
+        <p id="status">Ready</p>
+      </header>
+
+      <section class="controls">
+        <button id="readReddit">Read Reddit</button>
+        <button id="sendOpenAi">Send To ChatGPT</button>
+        <button id="readOpenAi">Read ChatGPT</button>
+        <button id="generateImages">Queue Panel Images</button>
+        <button id="downloadImages">Download Images</button>
+        <button id="downloadCaptions">Download Captions</button>
+        <button id="buildVideo">Build Video</button>
+        <button id="copyCaption">Copy Caption</button>
+        <button id="fillTikTok">Fill TikTok</button>
+      </section>
+
+      <section>
+        <label for="style">Illustration style</label>
+        <textarea id="style" rows="5" spellcheck="false">warm hand-drawn storybook illustration, simple cute European/American characters, thick imperfect dark outlines, soft watercolor and marker texture, beige paper background, gentle blush, expressive faces, cozy intimate composition, vertical 9:16, no text, no watermark, no username</textarea>
+      </section>
+
+      <section>
+        <label for="posts">Reddit candidates</label>
+        <textarea id="posts" rows="10" spellcheck="false"></textarea>
+      </section>
+
+      <section>
+        <label for="result">ChatGPT result</label>
+        <textarea id="result" rows="14" spellcheck="false"></textarea>
+      </section>
+    </main>
+    <script type="module" src="./sidebar.js"></script>
+  </body>
+</html>

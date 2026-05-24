@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "Unspoken Video Pipeline",
+  "version": "0.1.0",
+  "description": "Connect Reddit, ChatGPT/OpenAI web, and TikTok upload pages for unspokenvideo drafts.",
+  "permissions": [
+    "activeTab",
+    "downloads",
+    "nativeMessaging",
+    "scripting",
+    "sidePanel",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://www.reddit.com/*",
+    "https://reddit.com/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://www.tiktok.com/*",
+    "https://www.tiktok.com/upload*"
+  ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Unspoken Pipeline"
+  },
+  "side_panel": {
+    "default_path": "src/sidebar/index.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.reddit.com/*", "https://reddit.com/*"],
+      "js": ["src/content/reddit.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      "js": ["src/content/openai.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.tiktok.com/*"],
+      "js": ["src/content/tiktok.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

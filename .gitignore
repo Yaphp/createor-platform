@@ -1,0 +1,15 @@
+# Local dependencies and caches
+node_modules/
+.cache/
+dist/
+build/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.log
+.idea
+
+# Generated daily video packages
+output
+*.zip
