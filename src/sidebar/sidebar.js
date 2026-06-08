@@ -145,7 +145,19 @@ function pickVoiceoverForPanel(data, index, total) {
 
 function getCharacterContinuity(data) {
   const script = data.rewritten_script || "";
-  return `Keep the same recurring European/American characters implied by this story across panels. Story context: ${script.slice(0, 700)}`;
+  return `Keep the same recurring characters implied by this story across panels. Follow any identity or appearance cues from the source, story, and requested visual style; do not force a specific ethnicity. Story context: ${script.slice(0, 700)}`;
+}
+
+function summarizePreviousPanels(storyboard, currentIndex) {
+  return storyboard
+    .slice(0, currentIndex)
+    .map((panel, index) => ({
+      label: panel.panel || index + 1,
+      summary: panel.visual || panel.image_prompt || ""
+    }))
+    .filter((panel) => panel.summary)
+    .map((panel) => `Panel ${panel.label}: ${panel.summary}`)
+    .join(" | ");
 }
 
 function buildPanelImagePrompts(resultText, style) {
@@ -161,6 +173,7 @@ function buildPanelImagePrompts(resultText, style) {
     imagePrompt: panel.image_prompt || "",
     emotionalLine: pickVoiceoverForPanel(data, index, storyboard.length),
     continuity: getCharacterContinuity(data),
+    previousPanels: summarizePreviousPanels(storyboard, index),
     total: storyboard.length
   }));
 }
@@ -178,13 +191,15 @@ Scene and emotion:
 - Emotional sentence to express visually, without drawing any text: "${panel.emotionalLine || "quiet longing and unsaid affection"}"
 - Base image prompt: ${panel.imagePrompt}
 - Continuity: ${panel.continuity}
+- Previous panels to avoid repeating: ${panel.previousPanels || "none yet; make this the strongest hook image"}
 
 Hard rules:
-- European/American character design.
-- Warm hand-drawn storybook look, thick imperfect dark outlines, watercolor/marker texture, beige paper background.
 - No visible words, captions, usernames, logos, watermarks, UI, speech bubbles, or text inside the image.
 - Keep the same recurring characters across all panels.
-- Focus on the emotional meaning of the sentence through facial expression, body language, props, lighting, and composition.
+- Do not repeat the previous panels' location, main prop, camera angle, body pose, or emotional staging unless the base prompt explicitly requires it.
+- Avoid defaulting to rain, window staring, glowing phone close-ups, coffee shops, train stations, bedroom waiting, unread-message screens, sitting alone on a bed, or letters on desks unless the story specifically calls for them.
+- Focus on the emotional meaning of the sentence through facial expression, body language, concrete action, props, lighting, composition, and environmental pressure.
+- Make this image a clear story beat with cause-and-effect, not a generic portrait of sadness.
 - Output only this one image.`;
 }
 
